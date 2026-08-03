@@ -1,40 +1,37 @@
-/*
-Copyright © 2026 NAME HERE <EMAIL ADDRESS>
-
-*/
 package cmd
 
 import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+
+	"github.com/tunahanyelmer/Tune/internal/config"
 )
 
-// providerCmd represents the provider command
 var providerCmd = &cobra.Command{
-	Use:   "provider",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Use:   "provider [name]",
+	Short: "Show or set the active music provider",
+	Args:  cobra.MaximumNArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		cfg, err := config.Load()
+		if err != nil {
+			return err
+		}
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("provider called")
+		if len(args) == 0 {
+			fmt.Println("Current provider:", cfg.Provider)
+			return nil
+		}
+
+		cfg.Provider = args[0]
+		if err := cfg.Save(); err != nil {
+			return err
+		}
+		fmt.Printf("✅ Provider set to %s\n", args[0])
+		return nil
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(providerCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// providerCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// providerCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
