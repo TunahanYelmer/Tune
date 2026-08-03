@@ -1,40 +1,35 @@
-/*
-Copyright © 2026 NAME HERE <EMAIL ADDRESS>
-
-*/
 package cmd
 
 import (
 	"fmt"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
+
+	"github.com/tunahanyelmer/Tune/internal/config"
+	"github.com/tunahanyelmer/Tune/internal/daemon"
+	"github.com/tunahanyelmer/Tune/internal/tui"
 )
 
-// tuiCmd represents the tui command
 var tuiCmd = &cobra.Command{
 	Use:   "tui",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Launch the interactive terminal UI",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if err := daemon.EnsureRunning(); err != nil {
+			return fmt.Errorf("starting daemon: %w", err)
+		}
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("tui called")
+		cfg, err := config.Load()
+		if err != nil {
+			return err
+		}
+
+		p := tea.NewProgram(tui.New(cfg.Provider))
+		_, err = p.Run()
+		return err
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(tuiCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// tuiCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// tuiCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
