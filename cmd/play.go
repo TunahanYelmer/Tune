@@ -1,46 +1,35 @@
-/*
-Copyright © 2026 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
+
+	"github.com/tunahanyelmer/Tune/internal/daemon"
 )
 
-// playCmd represents the play command
 var playCmd = &cobra.Command{
-	Use:   "play",
-	Short: "A brief description of your command",
-	Long: "",
-	RunE: func(cmd *cobra.Command, args []string) error{
-		
-		if len(args) == 0 || args[0] == "" {
-		fmt.Println("Please provide a song")
-		os.Exit(2)
+	Use:   "play <song>",
+	Short: "Play a song",
+	Args:  cobra.MinimumNArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if err := daemon.EnsureRunning(); err != nil {
+			return err
 		}
-			
-		song := strings.Join(args, " ")
-		
-		
-
-		return Music.Play(song)
+		query := strings.TrimSpace(strings.Join(args, " "))
+		resp, err := daemon.Send(daemon.Request{Action: daemon.ActionPlay, Query: query})
+		if err != nil {
+			return err
+		}
+		if !resp.OK {
+			return fmt.Errorf("%s", resp.Error)
+		}
+		fmt.Printf("▶ Playing: %s\n", query)
+		return nil
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(playCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// playCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// playCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
