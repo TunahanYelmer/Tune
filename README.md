@@ -1,4 +1,4 @@
-Tune
+# Tune
 
 Universal music controller for the terminal.
 
